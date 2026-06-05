@@ -1,0 +1,51 @@
+{
+  "name": "@webpro/remark-wrap-prose",
+  "version": "1.0.0",
+  "description": "Remark plugin to wrap prose to a maximum line width",
+  "keywords": [
+    "unified",
+    "remark",
+    "remark-plugin",
+    "plugin",
+    "markdown",
+    "prose",
+    "wrap",
+    "fill",
+    "reflow",
+    "width"
+  ],
+  "homepage": "https://github.com/webpro/remark-wrap-prose",
+  "bugs": "https://github.com/webpro/remark-wrap-prose/issues",
+  "repository": "github:webpro/remark-wrap-prose",
+  "license": "ISC",
+  "author": {
+    "name": "Lars Kappert",
+    "email": "lars@webpro.nl"
+  },
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "packageManager": "pnpm@11.5.0",
+  "main": "index.js",
+  "types": "index.d.ts",
+  "files": [
+    "index.js",
+    "editorconfig.js",
+    "index.d.ts"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "dependencies": {
+    "fast-string-truncated-width": "^3.0.3"
+  },
+  "devDependencies": {
+    "@types/node": "^24.10.4",
+    "remark": "^15.0.1",
+    "remark-directive": "^4.0.0"
+  },
+  "scripts": {
+    "test": "node --test"
+  }
+}
