@@ -94,6 +94,124 @@ test('never breaks a single word wider than the limit', () => {
   assert.ok(out.includes(url), 'the long token should stay intact');
 });
 
+test('moves inline code intact to the next line at 80 columns', () => {
+  assert.equal(
+    format('The array of possible values for this particular configuration option is `[true, false]`.\n', { width: 80 }),
+    'The array of possible values for this particular configuration option is\n`[true, false]`.\n'
+  );
+});
+
+for (const { name, input, width, expected } of [
+  {
+    name: 'keeps inline code on the current line when it fits exactly',
+    input: 'Use `[true, false]` now.\n',
+    width: 24,
+    expected: 'Use `[true, false]` now.\n'
+  },
+  {
+    name: 'keeps inline code wider than the limit intact',
+    input: 'Use `[true, false]` now.\n',
+    width: 10,
+    expected: 'Use\n`[true, false]`\nnow.\n'
+  },
+  {
+    name: 'keeps punctuation attached to inline code',
+    input: 'Use (`[true, false]`) now.\n',
+    width: 20,
+    expected: 'Use\n(`[true, false]`)\nnow.\n'
+  },
+  {
+    name: 'keeps inline code intact inside strong emphasis',
+    input: '**Use `[true, false]` here** please.\n',
+    width: 20,
+    expected: '**Use\n`[true, false]`\nhere** please.\n'
+  },
+  {
+    name: 'keeps inline code intact inside links',
+    input: 'Choose [`[true, false]`](/values) now.\n',
+    width: 24,
+    expected: 'Choose\n[`[true, false]`](/values)\nnow.\n'
+  },
+  {
+    name: 'wraps prose between multiple inline code spans',
+    input: 'Use `a b` and `c d` today.\n',
+    width: 12,
+    expected: 'Use `a b`\nand `c d`\ntoday.\n'
+  },
+  {
+    name: 'preserves inline code whitespace while collapsing prose spaces',
+    input: 'Use   `a  b\tc`   here.\n',
+    width: 40,
+    expected: 'Use `a  b\tc` here.\n'
+  },
+  {
+    name: 'preserves spaces in whitespace-only inline code',
+    input: 'Use `   ` here.\n',
+    width: 10,
+    expected: 'Use `   `\nhere.\n'
+  },
+  {
+    name: 'preserves inline code padding and embedded backticks',
+    input: 'Use `` `a  b` `` here.\n',
+    width: 12,
+    expected: 'Use\n`` `a  b` ``\nhere.\n'
+  },
+  {
+    name: 'keeps inline code intact in block quotes',
+    input: '> Use `[true, false]` now.\n',
+    width: 22,
+    expected: '> Use `[true, false]`\n> now.\n'
+  },
+  {
+    name: 'keeps inline code intact in list items',
+    input: '* Use `[true, false]` now.\n',
+    width: 18,
+    expected: '* Use\n  `[true, false]`\n  now.\n'
+  },
+  {
+    name: 'measures the display width of inline code',
+    input: 'Use `東京 大阪` now.\n',
+    width: 14,
+    expected: 'Use\n`東京 大阪`\nnow.\n'
+  },
+  {
+    name: 'wraps escaped backticks as prose around inline code',
+    input: 'Use \\`a b\\` and `c d` now.\n',
+    width: 8,
+    expected: 'Use \\`a\nb\\` and\n`c d`\nnow.\n'
+  },
+  {
+    name: 'distinguishes inline code from matching text in a link title',
+    input: 'See [x](/u "`a b`") and `a b` now.\n',
+    width: 6,
+    expected: 'See\n[x](/u\n"`a\nb`")\nand\n`a b`\nnow.\n'
+  },
+  {
+    name: 'distinguishes inline code from matching text in HTML attributes',
+    input: 'Use <span title="`a b`">text</span> then `a b` done.\n',
+    width: 9,
+    expected: 'Use <span\ntitle="`a\nb`">text</span>\nthen\n`a b`\ndone.\n'
+  },
+  {
+    name: 'keeps inline code intact when emphasis requires character references',
+    input: 'See &#x61;*`a b`*&#x62; now.\n',
+    width: 20,
+    expected: 'See\n&#x61;*`a b`*&#x62;\nnow.\n'
+  },
+  {
+    name: 'keeps inline code handling local to its paragraph',
+    input: 'Use `a  b` now.\n\nPlain   prose here.\n',
+    width: 12,
+    expected: 'Use `a  b`\nnow.\n\nPlain prose\nhere.\n'
+  }
+]) {
+  test(name, () => {
+    const output = format(input, { width });
+    assert.equal(output, expected);
+    assert.equal(format(output, { width }), expected);
+  });
+}
+
 test('indents wrapped list-item continuation lines within width', () => {
   const out = format(
     '- A list item with enough words in it to require wrapping across more than one single line at the configured width of eighty.\n'
@@ -153,6 +271,14 @@ test('preserves escapes that depend on phrasing context (directive colon)', () =
   assert.ok(out.includes('path\\:knip.json'), `escaped colon dropped:\n${out}`);
 });
 
+test('uses directive syntax to distinguish inline code from attribute text', () => {
+  const processor = remark().use(remarkDirective).use(remarkWrapProse, { width: 12 });
+  const output = String(processor.processSync('Use :kbd[`a b`]{title="`c d`"} then `e f` now.\n'));
+  const expected = 'Use\n:kbd[`a b`]{title="`c\nd`"} then\n`e f` now.\n';
+  assert.equal(output, expected);
+  assert.equal(String(processor.processSync(output)), expected);
+});
+
 test('preserves non-breaking and other Unicode spaces (collapses only ASCII)', () => {
   // ❌ + space + U+202F narrow no-break space + space + text.
   const value =
@@ -207,4 +333,12 @@ test('keeps a leading GitHub alert marker on its own line', () => {
   assert.equal(lines[0], '[!NOTE]', 'marker stays alone on the first line');
   assert.ok(lines.length > 2, 'body wraps onto multiple lines');
   for (const line of lines) assert.ok(displayWidth(line) <= 80);
+});
+
+test('keeps inline code intact after a GitHub alert marker', () => {
+  const processor = remark().use(injectAlert).use(remarkWrapProse, { width: 10 });
+  const output = String(processor.processSync('[!NOTE]\nUse `[true, false]` now.\n'));
+  const expected = '[!NOTE]\nUse\n`[true, false]`\nnow.\n';
+  assert.equal(output, expected);
+  assert.equal(String(processor.processSync(output)), expected);
 });

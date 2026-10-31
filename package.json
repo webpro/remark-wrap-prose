@@ -38,7 +38,8 @@
     "access": "public"
   },
   "dependencies": {
-    "fast-string-truncated-width": "^3.0.3"
+    "fast-string-truncated-width": "^3.0.3",
+    "mdast-util-from-markdown": "^2.0.3"
   },
   "devDependencies": {
     "@types/node": "^24.10.4",
