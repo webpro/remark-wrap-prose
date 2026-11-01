@@ -1,6 +1,6 @@
 {
   "name": "@webpro/remark-wrap-prose",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Remark plugin to wrap prose to a maximum line width",
   "keywords": [
     "unified",
@@ -39,10 +39,10 @@
   },
   "dependencies": {
     "fast-string-truncated-width": "^3.0.3",
-    "mdast-util-from-markdown": "^2.0.3"
+    "mdast-util-from-markdown": "^2.1.0"
   },
   "devDependencies": {
-    "@types/node": "^24.10.4",
+    "@types/node": "^26.6.6",
     "remark": "^15.0.1",
     "remark-directive": "^4.0.0"
   },
