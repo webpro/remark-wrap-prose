@@ -158,6 +158,18 @@ for (const { name, input, width, expected } of [
     expected: 'Use\n`` `a  b` ``\nhere.\n'
   },
   {
+    name: 'turns line endings in inline code into spaces',
+    input: 'Some words before `npx\ncommitlint` after.\n',
+    width: 20,
+    expected: 'Some words before\n`npx commitlint`\nafter.\n'
+  },
+  {
+    name: 'turns line endings in inline code into spaces in list items',
+    input: '* Use `a\n  b` now.\n',
+    width: 40,
+    expected: '* Use `a b` now.\n'
+  },
+  {
     name: 'keeps inline code intact in block quotes',
     input: '> Use `[true, false]` now.\n',
     width: 22,

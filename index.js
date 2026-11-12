@@ -27,6 +27,9 @@ function displayWidth(value) {
 // content and are left untouched, so they survive reflow.
 const SOFT_WHITESPACE = /[ \t\n\r\f\v]+/g;
 
+// Words only keep line endings inside inline code, which renders them as spaces.
+const LINE_ENDING = /\r\n?|\n/g;
+
 function* proseWords(text, parseOptions) {
   const codeSpans = [];
   function visit(node) {
@@ -40,10 +43,10 @@ function* proseWords(text, parseOptions) {
   for (const match of text.matchAll(SOFT_WHITESPACE)) {
     while (span < codeSpans.length && codeSpans[span].end.offset <= match.index) span++;
     if (span < codeSpans.length && codeSpans[span].start.offset <= match.index) continue;
-    yield text.slice(start, match.index);
+    yield text.slice(start, match.index).replace(LINE_ENDING, ' ');
     start = match.index + match[0].length;
   }
-  yield text.slice(start);
+  yield text.slice(start).replace(LINE_ENDING, ' ');
 }
 
 /**

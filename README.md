@@ -8,7 +8,7 @@ level. Tables, code, and other non-prose blocks are left untouched. Wide CJK
 characters and emoji count as two columns. Words wider than the limit are never
 broken mid-word.
 
-Inline code stays intact and retains its whitespace, even when a code span exceeds the limit.
+Inline code stays intact and retains its whitespace, even when a code span exceeds the limit. Line endings in inline code become spaces, which is how they render.
 
 ## Install
 
