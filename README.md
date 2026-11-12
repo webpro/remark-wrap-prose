@@ -25,6 +25,9 @@ import remarkWrapProse from "@webpro/remark-wrap-prose";
 const file = await remark().use(remarkWrapProse, { width: 80 }).process(input);
 ```
 
+Use it after plugins that serialize paragraphs, such as `remark-gfm`. Their
+output, like task list checkboxes, is wrapped too.
+
 ## Example
 
 ### Input

@@ -81,12 +81,46 @@ function fill(text, width, parseOptions) {
 }
 
 /**
+ * Serialize a paragraph like the default `mdast-util-to-markdown` handler.
+ *
+ * @type {import('mdast-util-to-markdown').Handle}
+ */
+function serializeParagraph(node, _parent, state, info) {
+  const exit = state.enter('paragraph');
+  const subexit = state.enter('phrasing');
+  const value = state.containerPhrasing(node, info);
+  subexit();
+  exit();
+  return value;
+}
+
+/**
+ * Find the `paragraph` handler `mdast-util-to-markdown` resolves from these
+ * extensions: nested extensions apply first and later handlers win.
+ *
+ * @param {Array<import('mdast-util-to-markdown').Options> | undefined} extensions
+ * @returns {import('mdast-util-to-markdown').Handle | undefined}
+ */
+function findParagraphHandler(extensions = []) {
+  let handler;
+  for (const extension of extensions) {
+    handler = findParagraphHandler(extension.extensions) ?? handler;
+    handler = extension.handlers?.paragraph ?? handler;
+  }
+  return handler;
+}
+
+/**
  * Wrap prose to a maximum line width when serializing back to markdown.
  *
  * Only paragraphs are reflowed. Indentation from lists and block quotes is
  * handled by the default serializer, so wrapping stays correct (and within
  * width) at every nesting level. A leading GitHub alert marker (`[!NOTE]`,
  * serialized from a `gfmAlert` node) is kept on its own line.
+ *
+ * The output of a `paragraph` handler registered by an earlier plugin, such as
+ * the task list checkbox from `remark-gfm`, is wrapped too. Use this plugin
+ * after such plugins, as a later `paragraph` handler replaces this one.
  *
  * Width is resolved in order: the `width` option, then `.editorconfig`'s
  * `max_line_length`, then `80`.
@@ -102,14 +136,11 @@ export default function remarkWrapProse(options = {}) {
 
   const data = this.data();
   data.toMarkdownExtensions = data.toMarkdownExtensions || [];
+  const serialize = findParagraphHandler(data.toMarkdownExtensions) ?? serializeParagraph;
   data.toMarkdownExtensions.push({
     handlers: {
-      paragraph(node, _parent, state, info) {
-        const exit = state.enter('paragraph');
-        const subexit = state.enter('phrasing');
-        const value = state.containerPhrasing(node, info);
-        subexit();
-        exit();
+      paragraph(node, parent, state, info) {
+        const value = serialize.call(this, node, parent, state, info);
 
         const available = Math.max(1, width - (info.lineShift || 0));
         const parseOptions = {

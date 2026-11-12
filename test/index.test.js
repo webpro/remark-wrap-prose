@@ -5,6 +5,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { remark } from 'remark';
 import remarkDirective from 'remark-directive';
+import remarkGfm from 'remark-gfm';
 import remarkWrapProse from '../index.js';
 import fstw from 'fast-string-truncated-width';
 
@@ -290,6 +291,22 @@ test('preserves non-breaking and other Unicode spaces (collapses only ASCII)', (
   for (const line of out.trimEnd().split('\n')) {
     assert.ok(displayWidth(line) <= 50, `line too wide: ${line}`);
   }
+});
+
+test('wraps paragraphs when used after remark-gfm', () => {
+  const processor = remark().use(remarkGfm).use(remarkWrapProse, { width: 40 });
+  const output = String(processor.processSync('A paragraph after remark-gfm that is long enough to wrap at forty.\n'));
+  assert.equal(output, 'A paragraph after remark-gfm that is\nlong enough to wrap at forty.\n');
+});
+
+test('keeps task list checkboxes when used after remark-gfm', () => {
+  const processor = remark().use(remarkGfm).use(remarkWrapProse, { width: 40 });
+  const output = String(
+    processor.processSync('- [ ] A task list item with enough words to wrap at forty columns.\n- [x] Done.\n')
+  );
+  const expected = '* [ ] A task list item with enough words\n  to wrap at forty columns.\n* [x] Done.\n';
+  assert.equal(output, expected);
+  assert.equal(String(processor.processSync(output)), expected);
 });
 
 test('is idempotent', () => {

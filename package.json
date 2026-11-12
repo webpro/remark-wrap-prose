@@ -44,7 +44,8 @@
   "devDependencies": {
     "@types/node": "^26.6.6",
     "remark": "^15.0.1",
-    "remark-directive": "^4.0.0"
+    "remark-directive": "^4.0.0",
+    "remark-gfm": "^4.0.1"
   },
   "scripts": {
     "test": "node --test"
