@@ -1,6 +1,6 @@
 {
   "name": "@webpro/remark-wrap-prose",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Remark plugin to wrap prose to a maximum line width",
   "keywords": [
     "unified",
